@@ -8,12 +8,17 @@ export const register = async (username, email, password, role = 'student') => {
     throw new Error('User already exists');
   }
 
+  // Security: Only allow student or teacher roles
+  // Admin accounts should be created manually or via admin panel
+  const allowedRoles = ['student', 'teacher'];
+  const safeRole = allowedRoles.includes(role) ? role : 'student';
+
   const hashedPassword = await hashPassword(password);
   const user = new User({
     username,
     email,
     password: hashedPassword,
-    role,
+    role: safeRole,
   });
 
   await user.save();

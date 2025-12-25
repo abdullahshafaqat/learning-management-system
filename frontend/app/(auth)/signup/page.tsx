@@ -18,7 +18,7 @@ const signupSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['user', 'admin']).optional(),
+  role: z.enum(['student', 'instructor', 'admin']).optional(),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -35,7 +35,7 @@ export default function SignupPage() {
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      role: 'user',
+      role: 'student',
     },
   });
 
@@ -44,6 +44,8 @@ export default function SignupPage() {
     try {
       const response = await authService.signup(data);
       setAuth(null, response.token);
+      
+      // Auto-fetch user details or just redirect
       toast.success('Account created successfully!');
       router.push('/dashboard');
     } catch (error: any) {
@@ -117,14 +119,15 @@ export default function SignupPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="role" className="text-white">
-                  Role
+                  I am a...
                 </Label>
                 <select
                   id="role"
                   {...register('role')}
                   className="w-full px-3 py-2 rounded-md bg-white/10 border border-white/20 text-white focus:border-blue-400 focus:outline-none transition-smooth"
                 >
-                  <option value="user" className="bg-gray-800">User</option>
+                  <option value="student" className="bg-gray-800">Student</option>
+                  <option value="instructor" className="bg-gray-800">Instructor</option>
                   <option value="admin" className="bg-gray-800">Admin</option>
                 </select>
               </div>
