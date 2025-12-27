@@ -53,7 +53,7 @@ export const getLectures = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    const lectures = await lectureService.getLectures(courseId);
+    const lectures = await lectureService.getLectures(courseId, req.user.id, req.user.role);
 
     res.json({
       success: true,

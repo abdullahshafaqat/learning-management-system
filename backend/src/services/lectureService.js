@@ -1,5 +1,6 @@
 import Lecture from '../models/Lecture.js';
 import Course from '../models/Course.js';
+import Enrollment from '../models/Enrollment.js';
 import cloudinary from '../utils/cloudinary.js';
 
 /**
@@ -114,7 +115,54 @@ export const addLecture = async (courseId, userId, title, fileBuffer, mimeType) 
  * @param {string} courseId - Course ID
  * @returns {Promise<Array>} Array of lectures
  */
-export const getLectures = async (courseId) => {
-  const lectures = await Lecture.find({ courseId }).select('title contentType videoUrl imageUrl createdAt');
-  return lectures;
+/**
+ * Get all lectures for a course
+ * @param {string} courseId - Course ID
+ * @param {string} userId - User ID requesting access
+ * @param {string} userRole - Role of the user
+ * @returns {Promise<Array>} Array of lectures
+ */
+export const getLectures = async (courseId, userId, userRole) => {
+  // 1. Admin Bypass
+  if (userRole === 'admin') {
+    return await Lecture.find({ courseId }).select('title contentType videoUrl imageUrl createdAt');
+  }
+
+  const course = await Course.findById(courseId);
+  if (!course) {
+    const error = new Error('Course not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // 2. Teacher Check (Must be owner)
+  if (userRole === 'teacher') {
+    if (course.teacherId.toString() !== userId) {
+      const error = new Error('Access denied. You are not the owner of this course.');
+      error.statusCode = 403;
+      throw error;
+    }
+    return await Lecture.find({ courseId }).select('title contentType videoUrl imageUrl createdAt');
+  }
+
+  // 3. Student Check (Must be enrolled)
+  if (userRole === 'student') {
+    const enrollment = await Enrollment.findOne({
+      courseId,
+      studentId: userId,
+      status: 'active'
+    });
+
+    if (!enrollment) {
+      const error = new Error('Access denied. You must be enrolled in this course to view lectures.');
+      error.statusCode = 403;
+      throw error;
+    }
+    return await Lecture.find({ courseId }).select('title contentType videoUrl imageUrl createdAt');
+  }
+
+  // 4. Fallback for any other roles or weird states
+  const error = new Error('Access denied.');
+  error.statusCode = 403;
+  throw error;
 };

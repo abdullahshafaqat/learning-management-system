@@ -8,10 +8,17 @@ export const register = async (username, email, password, role = 'student') => {
     throw new Error('User already exists');
   }
 
-  // Security: Only allow student or teacher roles
-  // Admin accounts should be created manually or via admin panel
-  const allowedRoles = ['student', 'teacher'];
-  const safeRole = allowedRoles.includes(role) ? role : 'student';
+  // Security: Only allow student, teacher, or admin roles
+  const allowedRoles = ['student', 'teacher', 'admin'];
+  let safeRole = allowedRoles.includes(role) ? role : 'student';
+
+  // Singleton Admin Check: Only one admin allowed
+  if (safeRole === 'admin') {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (adminExists) {
+      safeRole = 'student'; // Fallback to student if admin already exists
+    }
+  }
 
   const hashedPassword = await hashPassword(password);
   const user = new User({
