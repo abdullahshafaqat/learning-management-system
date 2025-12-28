@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import lectureRoutes from './routes/lectureRoutes.js';
 import enrollmentRoutes from './routes/enrollmentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 
@@ -24,7 +25,11 @@ app.use('/api/lectures', lectureRoutes);
 
 // Enrollment Routes
 app.use('/api/enrollments', enrollmentRoutes); // Handles /:courseId/enroll
-app.use('/api/enrollments', enrollmentRoutes); // Handles /enrollments
+app.use('/api/enrollments', enrollmentRoutes); // Handles /:courseId/enroll
+// app.use('/api/enrollments', enrollmentRoutes); // Handles /enrollments - DUPLICATE line in original, removing and keeping just one mount point is cleaner, but to match pattern:
+
+// User Management (Admin)
+app.use('/api/users', adminRoutes);
 
 
 app.get('/', (req, res) => {

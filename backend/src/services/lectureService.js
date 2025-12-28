@@ -35,12 +35,13 @@ const uploadToCloudinary = (fileBuffer, mimeType) => {
  * Add a new lecture to a course
  * @param {string} courseId - Course ID
  * @param {string} userId - User ID from token
+ * @param {string} userRole - User Role from token (teacher/admin)
  * @param {string} title - Lecture title
  * @param {Buffer} fileBuffer - File buffer (video or image)
  * @param {string} mimeType - File MIME type
  * @returns {Promise<Object>} Created lecture
  */
-export const addLecture = async (courseId, userId, title, fileBuffer, mimeType) => {
+export const addLecture = async (courseId, userId, userRole, title, fileBuffer, mimeType) => {
   // Validate inputs
   if (!fileBuffer) {
     throw new Error('File is required');
@@ -60,8 +61,8 @@ export const addLecture = async (courseId, userId, title, fileBuffer, mimeType) 
     throw error;
   }
 
-  // Validate ownership: course.teacherId must match logged-in user
-  if (course.teacherId.toString() !== userId) {
+  // Validate ownership: (Admin bypasses this check)
+  if (userRole !== 'admin' && course.teacherId.toString() !== userId) {
     const error = new Error('You are not authorized to add lectures to this course');
     error.statusCode = 403;
     throw error;
@@ -165,4 +166,59 @@ export const getLectures = async (courseId, userId, userRole) => {
   const error = new Error('Access denied.');
   error.statusCode = 403;
   throw error;
+};
+
+/**
+ * Delete a lecture
+ * @param {string} lectureId - Lecture ID
+ * @param {string} userId - User ID
+ * @param {string} userRole - User Role
+ */
+export const deleteLecture = async (lectureId, userId, userRole) => {
+  const lecture = await Lecture.findById(lectureId);
+  if (!lecture) {
+    throw new Error('Lecture not found'); // 404 handled in controller or by general error handler if we add one
+  }
+
+  // Check ownership of the COURSE this lecture belongs to
+  const course = await Course.findById(lecture.courseId);
+  if (!course) throw new Error('Course not found');
+
+  if (userRole !== 'admin' && course.teacherId.toString() !== userId) {
+    const error = new Error('Access denied. You do not own this course.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // Delete from Cloudinary (Optional improvement: actually delete the file)
+  // await cloudinary.uploader.destroy(lecture.videoPublicId);
+
+  await Lecture.findByIdAndDelete(lectureId);
+};
+
+/**
+ * Update a lecture
+ * @param {string} lectureId
+ * @param {Object} updates
+ * @param {string} userId
+ * @param {string} userRole
+ */
+export const updateLecture = async (lectureId, updates, userId, userRole) => {
+  const lecture = await Lecture.findById(lectureId);
+  if (!lecture) {
+    const error = new Error('Lecture not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const course = await Course.findById(lecture.courseId);
+  if (userRole !== 'admin' && course.teacherId.toString() !== userId) {
+    const error = new Error('Access denied.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  Object.assign(lecture, updates);
+  await lecture.save();
+  return lecture;
 };

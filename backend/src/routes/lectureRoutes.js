@@ -23,4 +23,19 @@ router.get('/courses/:courseId',
   lectureController.getLectures
 );
 
+// Update lecture (Teacher/Admin)
+router.put('/:id', 
+  authMiddleware, 
+  roleMiddleware(['teacher', 'admin']),
+  lectureController.updateLecture
+);
+
+// Delete lecture (Teacher/Admin)
+router.delete('/:id', 
+  authMiddleware, 
+  roleMiddleware(['teacher', 'admin']),
+  lectureController.deleteLecture
+);
+
 export default router;
+

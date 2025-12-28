@@ -50,3 +50,56 @@ export const getTeacherCourses = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
+/**
+ * Controller: Get ALL courses (Admin)
+ * Route: GET /api/courses
+ */
+export const getAllCourses = async (req, res) => {
+  try {
+    const courses = await courseService.getAllCourses();
+    res.json({ success: true, courses });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Controller: Update a course
+ * Route: PUT /api/courses/:id
+ */
+export const updateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    const course = await courseService.updateCourse(id, updates, userId, userRole);
+
+    res.json({ success: true, message: 'Course updated', course });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    res.status(status).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Controller: Delete a course
+ * Route: DELETE /api/courses/:id
+ */
+export const deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    await courseService.deleteCourse(id, userId, userRole);
+
+    res.json({ success: true, message: 'Course deleted successfully' });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    res.status(status).json({ success: false, error: err.message });
+  }
+};
+

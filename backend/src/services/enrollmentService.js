@@ -58,3 +58,30 @@ export const getStudentEnrollments = async (studentId) => {
 
   return enrollments;
 };
+
+/**
+ * Get ALL enrollments (Admin only)
+ * @returns {Promise<Array>} List of all enrollments
+ */
+export const getAllEnrollments = async () => {
+  const enrollments = await Enrollment.find()
+    .populate('studentId', 'username email')
+    .populate('courseId', 'title code status')
+    .sort({ enrolledAt: -1 });
+  return enrollments;
+};
+
+/**
+ * Remove enrollment (Admin)
+ * @param {string} courseId 
+ * @param {string} studentId 
+ */
+export const removeEnrollment = async (courseId, studentId) => {
+  const result = await Enrollment.findOneAndDelete({ courseId, studentId });
+  if (!result) {
+    const error = new Error('Enrollment not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  return result;
+};

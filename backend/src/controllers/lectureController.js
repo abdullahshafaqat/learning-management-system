@@ -25,10 +25,11 @@ export const addLecture = async (req, res) => {
     const { courseId } = req.params;
     const { title } = req.body;
     const userId = req.user.id;
+    const userRole = req.user.role;
     const fileBuffer = req.file.buffer;
     const mimeType = req.file.mimetype;
 
-    const lecture = await lectureService.addLecture(courseId, userId, title, fileBuffer, mimeType);
+    const lecture = await lectureService.addLecture(courseId, userId, userRole, title, fileBuffer, mimeType);
 
     res.status(201).json({
       success: true,
@@ -67,3 +68,43 @@ export const getLectures = async (req, res) => {
     });
   }
 };
+
+/**
+ * Controller: Delete a lecture
+ * Route: DELETE /api/lectures/:id
+ */
+export const deleteLecture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    await lectureService.deleteLecture(id, userId, userRole);
+
+    res.json({ success: true, message: 'Lecture deleted successfully' });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Controller: Update a lecture
+ * Route: PUT /api/lectures/:id
+ */
+export const updateLecture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    const lecture = await lectureService.updateLecture(id, updates, userId, userRole);
+
+    res.json({ success: true, message: 'Lecture updated', lecture });
+  } catch (err) {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({ success: false, error: err.message });
+  }
+};
+

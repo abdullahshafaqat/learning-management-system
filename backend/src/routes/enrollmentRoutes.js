@@ -21,4 +21,29 @@ router.get(
   enrollmentController.getMyEnrollments
 );
 
+// 3. Admin: Get all enrollments
+router.get(
+  '/',
+  authMiddleware,
+  roleMiddleware(['admin']),
+  enrollmentController.getAllEnrollments
+);
+
+// 4. Admin: Enroll a student manually
+router.post(
+  '/admin/enroll',
+  authMiddleware,
+  roleMiddleware(['admin']),
+  enrollmentController.adminEnrollStudent
+);
+
+// 5. Admin: Remove a student manually
+router.post(
+  '/admin/remove',
+  authMiddleware,
+  roleMiddleware(['admin']),
+  enrollmentController.adminRemoveEnrollment
+);
+
 export default router;
+

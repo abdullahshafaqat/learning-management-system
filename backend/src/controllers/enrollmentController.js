@@ -56,3 +56,56 @@ export const getMyEnrollments = async (req, res) => {
     });
   }
 };
+
+/**
+ * Controller: Get ALL enrollments (Admin)
+ * Route: GET /api/enrollments
+ */
+export const getAllEnrollments = async (req, res) => {
+  try {
+    const enrollments = await enrollmentService.getAllEnrollments();
+    res.json({ success: true, enrollments });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Controller: Admin manually enroll a student
+ * Route: POST /api/enrollments/admin/enroll
+ * Body: { studentId, courseId }
+ */
+export const adminEnrollStudent = async (req, res) => {
+  try {
+    const { studentId, courseId } = req.body;
+    if (!studentId || !courseId) {
+      return res.status(400).json({ success: false, error: 'studentId and courseId are required' });
+    }
+
+    const enrollment = await enrollmentService.enrollStudent(courseId, studentId);
+    res.status(201).json({ success: true, message: 'Student enrolled successfully', enrollment });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    res.status(status).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Controller: Admin manually remove a student
+ * Route: POST /api/enrollments/admin/remove
+ * Body: { studentId, courseId }
+ */
+export const adminRemoveEnrollment = async (req, res) => {
+  try {
+    const { studentId, courseId } = req.body;
+    if (!studentId || !courseId) {
+      return res.status(400).json({ success: false, error: 'studentId and courseId are required' });
+    }
+
+    await enrollmentService.removeEnrollment(courseId, studentId);
+    res.json({ success: true, message: 'Student removed from course' });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    res.status(status).json({ success: false, error: err.message });
+  }
+};

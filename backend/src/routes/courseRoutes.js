@@ -20,4 +20,26 @@ router.get('/courses/teacher',
   courseController.getTeacherCourses
 );
 
+// Get ALL courses (Admin only)
+router.get('/courses', 
+  authMiddleware, 
+  roleMiddleware(['admin']), 
+  courseController.getAllCourses
+);
+
+// Update course (Teacher/Admin)
+router.put('/courses/:id', 
+  authMiddleware, 
+  roleMiddleware(['teacher', 'admin']), 
+  courseController.updateCourse
+);
+
+// Delete course (Teacher/Admin)
+router.delete('/courses/:id', 
+  authMiddleware, 
+  roleMiddleware(['teacher', 'admin']), 
+  courseController.deleteCourse
+);
+
 export default router;
+
